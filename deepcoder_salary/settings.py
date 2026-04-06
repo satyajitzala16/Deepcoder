@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-ej-(!44c$m11%o72t3y6-blx#%6hf+en5hx@x=dg%u9e_xmi^6
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['deepcoder.onrender.com']
 
 TEMPLATES = [
     {
