@@ -11,6 +11,7 @@ urlpatterns = [
     path('admin-salary/', views.admin_salary),
     path('admin-role/', views.admin_role, name="admin-role"),
     path('admin-technology/', views.admin_technology, name="admin-technology"),
+    path('logout/', views.logout, name='logout'),
 
 
     path('employee-login/', views.employee_login),
@@ -33,6 +34,7 @@ urlpatterns = [
     path('api/add-technology/', views.add_technology),
     path('api/update-technology/<int:id>/', views.update_technology),
     path('api/delete-technology/<int:id>/', views.delete_technology),
+    
     path('create-admin/', views.create_admin),
 
 ]

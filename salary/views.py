@@ -1,10 +1,33 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.http import JsonResponse
 from decimal import Decimal
+from functools import wraps
 
 from .models import Employee, Leave, SalaryRecord, Role, Technology, Admin
+from django.contrib.auth.models import User
+
+
+# ==============================
+# 🔐 AUTH DECORATORS
+# ==============================
+def admin_required(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if 'admin_id' not in request.session:
+            return redirect('/admin-login-page/')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+def admin_api_required(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if 'admin_id' not in request.session:
+            return Response({"error": "Unauthorized"})
+        return view_func(request, *args, **kwargs)
+    return wrapper
 
 
 # ==============================
@@ -58,7 +81,6 @@ def calculate_salary(emp, leave):
     paid = Decimal(str(leave.paid_leaves)) if leave else Decimal('0')
     comp = Decimal(str(leave.comp_off_leaves)) if leave else Decimal('0')
 
-    # 🔥 comp_off = NO salary cut
     unpaid = total - (paid + comp)
 
     if unpaid < 0:
@@ -74,6 +96,7 @@ def calculate_salary(emp, leave):
 # 📊 SALARY LIST
 # ==============================
 @api_view(['GET'])
+@admin_api_required
 def employee_salary_list(request):
 
     month = request.GET.get("month")
@@ -121,6 +144,7 @@ def employee_salary_list(request):
 # 📅 ADD LEAVE (LIMIT + RESET)
 # ==============================
 @api_view(['POST'])
+@admin_api_required
 def add_leave(request):
 
     emp_id = request.data.get("employee_id")
@@ -164,6 +188,7 @@ def add_leave(request):
 # ✏️ UPDATE LEAVE
 # ==============================
 @api_view(['PUT'])
+@admin_api_required
 def update_leave(request, id):
 
     leave = get_object_or_404(Leave, id=id)
@@ -195,6 +220,7 @@ def update_leave(request, id):
 # 📋 LEAVE LIST
 # ==============================
 @api_view(['GET'])
+@admin_api_required
 def leave_list(request):
 
     data = Leave.objects.select_related('employee').all()
@@ -219,6 +245,7 @@ def leave_list(request):
 # 👨‍💼 EMPLOYEE CRUD
 # ==============================
 @api_view(['POST'])
+@admin_api_required
 def add_employee(request):
 
     name = request.data.get("name")
@@ -245,8 +272,8 @@ def add_employee(request):
     return Response({"message": "Employee added"})
 
 
-# 📋 Get Employees
 @api_view(['GET'])
+@admin_api_required
 def get_employees(request):
 
     employees = Employee.objects.select_related('role').prefetch_related('technologies')
@@ -269,6 +296,7 @@ def get_employees(request):
 
 
 @api_view(['PUT'])
+@admin_api_required
 def update_employee(request, id):
 
     emp = get_object_or_404(Employee, id=id)
@@ -284,6 +312,7 @@ def update_employee(request, id):
 
 
 @api_view(['DELETE'])
+@admin_api_required
 def delete_employee(request, id):
 
     emp = get_object_or_404(Employee, id=id)
@@ -296,6 +325,7 @@ def delete_employee(request, id):
 # 🔹 ROLE API
 # ==============================
 @api_view(['GET'])
+@admin_api_required
 def get_roles(request):
     roles = Role.objects.all()
     data = [{"id": r.id, "name": r.name} for r in roles]
@@ -303,6 +333,7 @@ def get_roles(request):
 
 
 @api_view(['POST'])
+@admin_api_required
 def add_role(request):
     name = request.data.get("name")
     if not name:
@@ -314,6 +345,7 @@ def add_role(request):
 
 
 @api_view(['PUT'])
+@admin_api_required
 def update_role(request, id):
     role = get_object_or_404(Role, id=id)
     name = request.data.get("name")
@@ -325,6 +357,7 @@ def update_role(request, id):
 
 
 @api_view(['DELETE'])
+@admin_api_required
 def delete_role(request, id):
     role = get_object_or_404(Role, id=id)
     role.delete()
@@ -335,24 +368,31 @@ def delete_role(request, id):
 # TECHNOLOGY CRUD
 # ==============================
 @api_view(['POST'])
+@admin_api_required
 def add_technology(request):
     Technology.objects.create(name=request.data.get("name"))
     return Response({"message": "Technology added"})
 
+
 @api_view(['GET'])
+@admin_api_required
 def get_technologies(request):
     techs = Technology.objects.all()
     data = [{"id":t.id,"name":t.name} for t in techs]
     return Response(data)
 
+
 @api_view(['PUT'])
+@admin_api_required
 def update_technology(request, id):
     tech = get_object_or_404(Technology, id=id)
     tech.name = request.data.get("name")
     tech.save()
     return Response({"message":"Technology updated"})
 
+
 @api_view(['DELETE'])
+@admin_api_required
 def delete_technology(request, id):
     tech = get_object_or_404(Technology, id=id)
     tech.delete()
@@ -365,7 +405,8 @@ def delete_technology(request, id):
 @api_view(['POST'])
 def admin_login(request):
     try:
-        Admin.objects.get(email=request.data.get("email"), password=request.data.get("password"))
+        admin = Admin.objects.get(email=request.data.get("email"), password=request.data.get("password"))
+        request.session['admin_id'] = admin.id
         return Response({"status": "success"})
     except:
         return Response({"status": "error"})
@@ -375,11 +416,11 @@ def admin_login(request):
 def employee_login(request):
     try:
         user = Employee.objects.get(email=request.data.get("email"), password=request.data.get("password"))
+        request.session['employee_id'] = user.id
         return Response({"status": "success", "employee_id": user.id})
     except:
         return Response({"status": "error"})
-    
-from django.contrib.auth.models import User
+
 
 def create_admin(request):
     if not User.objects.filter(username="admin").exists():
@@ -390,17 +431,38 @@ def create_admin(request):
         )
         return JsonResponse({"message": "Admin created"})
     else:
-        return JsonResponse({"message": "Admin already exists"})    
+        return JsonResponse({"message": "Admin already exists"})
 
 
 # ==============================
-# PAGES
+# LOGOUT
+# ==============================
+def logout(request):
+    request.session.flush()
+    return redirect('admin_login_page')
+
+
+# ==============================
+# PAGES (PROTECTED)
 # ==============================
 def home(request): return render(request, "index.html")
+
 def admin_page(request): return render(request, "admin_login.html")
+
+@admin_required
 def admin_dashboard(request): return render(request, "admin/admin_dashboard.html")
+
+@admin_required
 def admin_employee(request): return render(request, "admin/admin_employee.html")
+
+@admin_required
 def admin_leaves(request): return render(request, "admin/admin_leaves.html")
+
+@admin_required
 def admin_salary(request): return render(request, "admin/admin_salary_record.html")
+
+@admin_required
 def admin_role(request): return render(request, "admin/admin-role.html")
+
+@admin_required
 def admin_technology(request): return render(request, "admin/admin-technology.html")
