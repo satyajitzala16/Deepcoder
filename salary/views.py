@@ -370,6 +370,19 @@ def employee_login(request):
         return Response({"status": "success", "employee_id": user.id})
     except:
         return Response({"status": "error"})
+    
+from django.contrib.auth.models import User
+
+def create_admin(request):
+    if not User.objects.filter(username="admin").exists():
+        User.objects.create_superuser(
+            username="admin",
+            email="admin@gmail.com",
+            password="admin123"
+        )
+        return JsonResponse({"message": "Admin created"})
+    else:
+        return JsonResponse({"message": "Admin already exists"})    
 
 
 # ==============================

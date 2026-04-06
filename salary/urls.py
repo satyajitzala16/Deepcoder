@@ -33,5 +33,6 @@ urlpatterns = [
     path('api/add-technology/', views.add_technology),
     path('api/update-technology/<int:id>/', views.update_technology),
     path('api/delete-technology/<int:id>/', views.delete_technology),
+    path('create-admin/', views.create_admin),
 
 ]
