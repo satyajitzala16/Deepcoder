@@ -221,13 +221,21 @@ def leave_list(request):
 @api_view(['POST'])
 def add_employee(request):
 
+    name = request.data.get("name")
+    email = request.data.get("email")
+    password = request.data.get("password")
+    salary = request.data.get("salary")
+
+    if not name or not email or not password or not salary:
+        return Response({"error": "All fields required"})
+
     role = Role.objects.get(id=request.data.get("role_id")) if request.data.get("role_id") else None
 
     emp = Employee.objects.create(
-        name=request.data.get("name"),
-        email=request.data.get("email"),
-        password=request.data.get("password"),
-        salary=request.data.get("salary"),
+        name=name,
+        email=email,
+        password=password,
+        salary=salary,
         role=role
     )
 

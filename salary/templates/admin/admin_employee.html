@@ -6,24 +6,29 @@
 
 <h2>Employees</h2>
 
-<!-- 🔥 Employee Form Card -->
 <div class="card">
     <input id="name" placeholder="Name">
     <input id="email" placeholder="Email">
     <input id="password" placeholder="Password">
     <input id="salary" placeholder="Salary">
 
+    <!-- Role -->
+    <select id="role"></select>
+
+    <!-- Technology Dropdown -->
+    <div class="multi-select">
+        <div class="select-box" onclick="toggleDropdown()">Select Tech ▼</div>
+        <div class="checkboxes" id="techDropdown"></div>
+    </div>
+
     <button onclick="addEmployee()">Add</button>
 </div>
 
 <hr>
 
-<!-- 🔥 Table Container -->
 <div class="table-container">
-    <table border="1" id="empTable"></table>
+    <table id="empTable"></table>
 </div>
 
-<!-- 🔥 JS -->
 <script src="{% static 'salary/js/admin_employee.js' %}"></script>
-
 {% endblock %}
