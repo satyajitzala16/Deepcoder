@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Employee Login</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'salary/css/index.css' %}">
+</head>
+<body>
+
+<h2>Employee Login</h2>
+
+<!-- ✅ ADD THIS -->
+<div id="loginBox">
+    <input id="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+</div>
+
+<div id="userPanel" style="display:none">
+    <h2>User Dashboard</h2>
+
+    <button onclick="logout()">Logout</button>
+
+    <input id="user_month" placeholder="Month">
+    <button onclick="loadUserSalary()">Load Salary</button>
+
+    <table border="1" id="userSalary"></table>
+</div>
+
+<script src="{% static 'salary/js/employee.js' %}"></script>
+
+</body>
+</html>

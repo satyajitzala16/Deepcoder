@@ -1,0 +1,46 @@
+{% extends "admin/admin_base.html" %}
+
+{% load static %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'salary/css/admin_leves.css' %}">
+
+<h2>Leaves</h2>
+
+<input type="hidden" id="leave_id">
+
+<!-- 🔥 Employee Dropdown -->
+<select id="emp_id">
+    <option value="">Select Employee</option>
+</select>
+
+<select id="month"></select>
+<input id="total" placeholder="Total Leaves">
+<input id="paid" placeholder="Paid Leaves">
+<input id="comp" placeholder="Compensatory Leaves"> <!-- new -->
+
+<button id="saveBtn" onclick="saveLeave()">Save</button>
+
+<hr>
+
+<h3>Leave List</h3>
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Employee</th>
+            <th>Month</th>
+            <th>Total</th>
+            <th>Paid</th>
+            <th>Compensatory</th> <!-- new -->
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody id="leaveTable"></tbody>
+</table>
+
+<script src="{% static 'salary/js/admin_leaves.js' %}"></script>
+
+{% endblock %}

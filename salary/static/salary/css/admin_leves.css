@@ -1,0 +1,123 @@
+/* 🔥 Page Title */
+h2 {
+    margin-bottom: 20px;
+    color: #1e293b;
+}
+
+h3 {
+    margin-top: 20px;
+    color: #334155;
+}
+
+
+/* 🔥 Form Section */
+#emp_id,
+#month,
+#total,
+#paid {
+    padding: 10px;
+    margin: 8px 5px 8px 0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    outline: none;
+    min-width: 180px;
+    transition: 0.3s;
+}
+
+#emp_id:focus,
+#month:focus,
+#total:focus,
+#paid:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 5px rgba(59,130,246,0.4);
+}
+
+
+/* 🔥 Button */
+#saveBtn {
+    padding: 10px 20px;
+    background: #3b82f6;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+#saveBtn:hover {
+    background: #2563eb;
+}
+
+
+/* 🔥 Table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    background: #ffffff;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+}
+
+
+/* 🔥 Table Header */
+table th {
+    background: #1e293b;
+    color: #fff;
+    padding: 10px;
+    font-weight: 500;
+}
+
+
+/* 🔥 Table Data */
+table td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+}
+
+
+/* 🔥 Hover */
+table tr:hover {
+    background: #f1f5f9;
+}
+
+
+/* 🔥 Action Button */
+table button {
+    padding: 6px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background: #f59e0b;
+    color: white;
+    transition: 0.3s;
+}
+
+table button:hover {
+    background: #d97706;
+}
+
+
+/* 🔥 Layout Fix */
+form,
+div {
+    margin-bottom: 10px;
+}
+
+
+/* 🔥 Responsive */
+@media (max-width: 768px) {
+
+    #emp_id,
+    #month,
+    #total,
+    #paid {
+        width: 100%;
+        margin: 5px 0;
+    }
+
+    #saveBtn {
+        width: 100%;
+        margin-top: 10px;
+    }
+}

@@ -1,0 +1,112 @@
+/* 🔥 Page Title */
+h2 {
+    margin-bottom: 20px;
+    color: #1e293b;
+}
+
+/* 🔥 Card (Form Box) */
+.card {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+/* 🔥 Inputs */
+.card input {
+    flex: 1 1 200px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    outline: none;
+    transition: 0.3s;
+}
+
+.card input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 5px rgba(59,130,246,0.4);
+}
+
+/* 🔥 Add Button */
+.card button {
+    padding: 10px 20px;
+    background: #3b82f6;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.card button:hover {
+    background: #2563eb;
+}
+
+/* 🔥 Table Container */
+.table-container {
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: auto;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+}
+
+/* 🔥 Table Styling */
+#empTable {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;   /* Fixed column widths */
+    min-width: 900px;
+}
+
+/* 🔥 Table Header */
+#empTable th {
+    background: #1e293b;
+    color: #fff;
+    padding: 10px;
+    font-weight: 500;
+}
+
+/* 🔥 Table Rows */
+#empTable td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    word-wrap: break-word;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 🔥 Hover Effect */
+#empTable tr:hover {
+    background: #f1f5f9;
+}
+
+/* 🔥 Action Buttons */
+button {
+    padding: 6px 10px;
+    margin: 2px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.save-btn { background: #10b981; color: white; }
+.cancel-btn { background: #6b7280; color: white; }
+
+/* 🔥 Responsive */
+@media (max-width: 768px) {
+    .card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .card input {
+        width: 100%;
+    }
+}

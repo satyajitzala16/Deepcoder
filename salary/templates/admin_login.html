@@ -1,0 +1,25 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Login</title>
+    
+    <link rel="icon" type="image/png" href="{% static 'salary/images/deepcoder_logo.png' %}">
+    
+    <link rel="stylesheet" href="{% static 'salary/css/admin_login.css' %}">
+</head>
+<body>
+
+<div class="login-container">
+
+    <h2>Admin Login</h2>
+
+    <input id="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+    <button onclick="adminLogin()">Login</button>
+
+</div>
+
+<script src="{% static 'salary/js/admin.js' %}"></script>
+
+</body></html>

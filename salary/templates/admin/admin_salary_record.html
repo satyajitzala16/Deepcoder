@@ -1,0 +1,35 @@
+{% extends "admin/admin_base.html" %}
+{% load static %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'salary/css/admin_salary_record.css' %}">
+
+<h2>Salary Records</h2>
+
+<!-- 🔥 Controls -->
+<div style="margin-bottom:15px;">
+
+    <select id="month"></select>
+
+    <button onclick="loadSalary()">Load</button>
+
+    <button onclick="exportCSV()">Export CSV</button>
+
+    <button onclick="exportExcel()">Export Excel</button>
+
+    <br><br>
+
+    <!-- 🔍 Search -->
+    <input type="text" id="search" placeholder="Search Employee" onkeyup="filterTable()">
+
+</div>
+
+<table id="salaryTable" style="width:100%; text-align:center"></table>
+
+<!-- 🔥 Excel Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script src="{% static 'salary/js/admin_salary_record.js' %}"></script>
+
+{% endblock %}

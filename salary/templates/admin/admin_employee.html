@@ -1,0 +1,29 @@
+{% extends "admin/admin_base.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'salary/css/admin_employee.css' %}">
+
+<h2>Employees</h2>
+
+<!-- 🔥 Employee Form Card -->
+<div class="card">
+    <input id="name" placeholder="Name">
+    <input id="email" placeholder="Email">
+    <input id="password" placeholder="Password">
+    <input id="salary" placeholder="Salary">
+
+    <button onclick="addEmployee()">Add</button>
+</div>
+
+<hr>
+
+<!-- 🔥 Table Container -->
+<div class="table-container">
+    <table border="1" id="empTable"></table>
+</div>
+
+<!-- 🔥 JS -->
+<script src="{% static 'salary/js/admin_employee.js' %}"></script>
+
+{% endblock %}

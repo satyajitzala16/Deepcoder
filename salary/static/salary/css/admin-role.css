@@ -1,0 +1,70 @@
+/* 🔥 Card */
+.card {
+    display: flex;
+    gap: 10px;
+    padding: 20px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* 🔥 Inputs */
+.card input {
+    flex: 1 1 200px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+/* 🔥 Buttons */
+.card button {
+    padding: 10px 20px;
+    background: #3b82f6;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.card button:hover { background: #2563eb; }
+
+/* 🔥 Table Container with scroll */
+.table-container {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-top: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+}
+
+/* 🔥 Table */
+#roleTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+#roleTable th, #roleTable td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+}
+#roleTable th {
+    background: #1e293b;
+    color: white;
+}
+#roleTable tr:hover {
+    background: #f1f5f9;
+}
+
+/* 🔹 Action buttons */
+.role-btn {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 5px;
+}
+.edit-btn { background: #f59e0b; color: white; }
+.delete-btn { background: #ef4444; color: white; }
+.save-btn { background: #10b981; color: white; }
+.cancel-btn { background: #6b7280; color: white; }

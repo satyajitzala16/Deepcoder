@@ -1,0 +1,111 @@
+/* 🔥 Page Title */
+h2 {
+    margin-bottom: 20px;
+    color: #1e293b;
+}
+
+
+/* 🔥 Top Controls (Dropdown + Buttons) */
+#month {
+    padding: 10px;
+    margin-right: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    outline: none;
+    min-width: 200px;
+    transition: 0.3s;
+}
+
+#month:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 5px rgba(59,130,246,0.4);
+}
+
+
+/* 🔥 Buttons */
+button {
+    padding: 10px 15px;
+    margin-right: 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #fff;
+    transition: 0.3s;
+}
+
+/* Load Button */
+button:nth-of-type(1) {
+    background: #3b82f6;
+}
+
+button:nth-of-type(1):hover {
+    background: #2563eb;
+}
+
+/* Export Button */
+button:nth-of-type(2) {
+    background: #10b981;
+}
+
+button:nth-of-type(2):hover {
+    background: #059669;
+}
+
+
+/* 🔥 Table */
+#salaryTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background: #ffffff;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+}
+
+
+/* 🔥 Table Header */
+#salaryTable th {
+    background: #1e293b;
+    color: #fff;
+    padding: 10px;
+    font-weight: 500;
+}
+
+
+/* 🔥 Table Data */
+#salaryTable td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+
+/* 🔥 Hover Effect */
+#salaryTable tr:hover {
+    background: #f1f5f9;
+}
+
+
+/* 🔥 Empty State */
+#salaryTable td[colspan] {
+    text-align: center;
+    font-weight: bold;
+    color: #64748b;
+}
+
+
+/* 🔥 Responsive */
+@media (max-width: 768px) {
+
+    #month {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    button {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    #salaryTable {
+        font-size: 12px;
+    }
+}

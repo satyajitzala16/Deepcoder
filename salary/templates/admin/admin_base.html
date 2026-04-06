@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Panel</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'salary/css/index.css' %}">
+
+    <link rel="icon" type="image/png" href="{% static 'salary/images/deepcoder_logo.png' %}">
+
+    <!-- 🔥 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+<div style="display:flex">
+
+    <!-- 🔥 Sidebar -->
+    <div style="width:220px;background:#1e293b;color:#fff;height:100vh;padding:20px">
+
+        <h3 style="margin-bottom:20px; display:flex; align-items:center; gap:15px;">
+            <img src="{% static 'salary/images/deepcoder_logo.png' %}" 
+                alt="Logo" 
+                style="width:50px; height:50px; object-fit:contain;">
+            DSMS Admin
+        </h3>
+
+        <!-- 🔹 Dashboard -->
+        <p>
+            <a href="/admin-dashboard/" style="color:#fff;text-decoration:none;">
+                <i class="fa-solid fa-chart-line"></i> Dashboard
+            </a>
+        </p>
+
+        <!-- 🔹 Employee -->
+        <p>
+            <a href="/admin-employee/" style="color:#fff;text-decoration:none;">
+                <i class="fa-solid fa-users"></i> Employee
+            </a>
+        </p>
+
+        <!-- 🔹 Leaves -->
+        <p>
+            <a href="/admin-leaves/" style="color:#fff;text-decoration:none;">
+                <i class="fa-solid fa-calendar-days"></i> Leaves
+            </a>
+        </p>
+
+        <!-- 🔹 Salary -->
+        <p>
+            <a href="/admin-salary/" style="color:#fff;text-decoration:none;">
+                <i class="fa-solid fa-money-bill-wave"></i> Salary
+            </a>
+        </p>
+
+        <!-- 🔹 Role -->
+        <p>
+            <a href="/admin-role/" style="color:#fff;text-decoration:none;">
+                <i class="fa-solid fa-briefcase"></i> Role
+            </a>
+        </p>
+
+        <!-- 🔹 Technology -->
+        <p>
+            <a href="/admin-technology/" style="color:#fff;text-decoration:none;">
+                <i class="fa-solid fa-laptop-code"></i> Technology
+            </a>
+        </p>
+
+        <hr style="margin:20px 0;">
+
+        <!-- 🔹 Logout -->
+        <p>
+            <a href="#" onclick="logout()" style="color:#ff4d4d;text-decoration:none;">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </a>
+        </p>
+
+    </div>
+
+    <!-- 🔥 Content -->
+    <div style="flex:1;padding:20px">
+        {% block content %}{% endblock %}
+    </div>
+
+</div>
+
+<!-- 🔥 Logout Script -->
+<script>
+function logout(){
+    fetch('/admin-logout/',{
+        method:'POST'
+    })
+    .then(()=>{
+        window.location.href = "/admin-login-page/";
+    });
+}
+</script>
+
+</body>
+</html>

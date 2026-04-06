@@ -1,0 +1,19 @@
+{% extends "admin/admin_base.html" %}
+{% load static %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'salary/css/admin_dashboard.css' %}">
+
+<h2>Dashboard</h2>
+
+<div class="dashboard-container">
+    <div class="card">
+        Total Employees
+        <span id="totalEmp"></span>
+    </div>
+</div>
+
+<script src="{% static 'salary/js/admin_dashboard.js' %}"></script>
+
+{% endblock %}

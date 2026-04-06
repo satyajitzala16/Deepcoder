@@ -1,0 +1,96 @@
+/* 🔥 Card (Form) */
+.card {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* 🔥 Inputs */
+.card input {
+    flex: 1 1 250px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    outline: none;
+    transition: 0.3s;
+    font-size: 16px;
+}
+.card input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 5px rgba(59,130,246,0.4);
+}
+
+/* 🔥 Buttons */
+.card button {
+    padding: 10px 20px;
+    background: #3b82f6;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 16px;
+}
+.card button:hover { background: #2563eb; }
+
+/* 🔥 Table Wrapper (Scrollable) */
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+/* 🔥 Table */
+#techTable {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+}
+
+/* 🔥 Table Header */
+#techTable th {
+    background: #1e293b;
+    color: #fff;
+    padding: 12px 15px;
+    font-weight: 500;
+    text-align: left;
+    border-bottom: 2px solid #334155;
+}
+
+/* 🔥 Table Cells */
+#techTable td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 15px;
+}
+
+/* 🔥 Hover Effect */
+#techTable tr:hover {
+    background: #f1f5f9;
+}
+
+/* 🔥 Action Buttons */
+button {
+    padding: 6px 10px;
+    margin: 2px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+.save-btn { background:#10b981;color:white; }
+.edit-btn { background:#f59e0b;color:white; }
+.delete-btn { background:#ef4444;color:white; }
+.cancel-btn { background:#6b7280;color:white; }
+
+/* 🔥 Responsive */
+@media (max-width:768px){
+    .card { flex-direction: column; align-items: stretch; }
+    .card input, .card button { width: 100%; }
+    #techTable th, #techTable td { padding: 10px; font-size: 14px; }
+}
