@@ -80,6 +80,7 @@ async function loadSalary(){
    <th>Unpaid Leaves</th>
    <th>Cut Amount</th>
    <th>Final Salary</th>
+   <th>Slip</th>
  </tr>
  `;
 
@@ -102,6 +103,11 @@ async function loadSalary(){
        <td>${e.unpaid_leaves}</td>
        <td>${e.cut_amount}</td>
        <td>${e.final_salary}</td>
+       <td>
+         <button onclick="downloadSlip('${e.id}', '${e.month}')">
+            Download
+         </button>
+        </td>
      </tr>
      `;
    });
@@ -193,6 +199,9 @@ function exportExcel(){
  XLSX.writeFile(wb, `salary_${month}.xlsx`);
 }
 
+function downloadSlip(empId, month){
+    window.open(`/download-slip/${empId}/${month}/`);
+}
 
 // 🔥 Page Load
 loadMonths();

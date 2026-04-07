@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Admin, Employee, Leave ,SalaryRecord , Role ,Technology
+from .models import Admin, Employee, Leave  , Role ,Technology , Company , SalarySlip
 
 
 # 👨‍💼 Employee Admin
@@ -19,13 +19,13 @@ class LeaveAdmin(admin.ModelAdmin):
     ordering = ('id',)
 
 
-# 💰 Salary Record Admin
-@admin.register(SalaryRecord)
-class SalaryRecordAdmin(admin.ModelAdmin):
-    list_display = ('id', 'employee', 'month', 'final_salary')
-    search_fields = ('employee__name', 'month')
-    list_filter = ('employee', 'month')
+# 🏢 Company Admin
+@admin.register(Company)
+class CompanyAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name')
+    search_fields = ('name',)
     ordering = ('id',)
+
 
 @admin.register(Role)
 class RoleAdmin(admin.ModelAdmin):

@@ -34,6 +34,7 @@ urlpatterns = [
     path('api/add-technology/', views.add_technology),
     path('api/update-technology/<int:id>/', views.update_technology),
     path('api/delete-technology/<int:id>/', views.delete_technology),
+    path('download-slip/<int:emp_id>/<str:month>/', views.salary_slip_pdf, name='salary_slip_pdf'),
     
     path('create-admin/', views.create_admin),
 
