@@ -1,12 +1,13 @@
 body {
-    overflow: hidden; /* 🔥 Page scroll band */
+    overflow: hidden;
+    font-family: Arial, sans-serif;
 }
 
 h2 {
     margin-bottom: 20px;
 }
 
-/* Card */
+/* CARD */
 .card {
     background: #fff;
     padding: 20px;
@@ -14,55 +15,113 @@ h2 {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
-/* Inputs */
-.card input, .card select {
+.card input,
+.card select {
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 6px;
+    min-width: 150px;
 }
 
-/* Button */
 .card button {
     background: #3b82f6;
     color: #fff;
     border: none;
     padding: 10px 20px;
     border-radius: 6px;
+    cursor: pointer;
 }
 
-/* Table scroll only */
+.card button:hover {
+    background: #2563eb;
+}
+
+/* TABLE */
 .table-container {
     height: 400px;
     overflow: auto;
+    margin-top: 10px;
 }
 
-/* Table */
 #empTable {
     width: 100%;
     border-collapse: collapse;
+    background: white;
 }
 
+/* HEADER */
 #empTable th {
     background: #1e293b;
     color: white;
-    padding: 10px;
+    padding: 12px;
+    position: sticky;
+    top: 0;
+    text-align: center;
 }
 
+/* CELL */
 #empTable td {
     padding: 10px;
     border-bottom: 1px solid #ddd;
+    text-align: center;
+    vertical-align: middle;
 }
 
-/* Icons */
-.icon-btn {
+/* ROW */
+#empTable tr:nth-child(even) {
+    background: #f8fafc;
+}
+
+#empTable tr:hover {
+    background: #e2e8f0;
+}
+
+/* 🔥 FIXED ACTION COLUMN */
+.action-col {
+    width: 140px;
+    white-space: nowrap;
+}
+
+/* INPUT INSIDE TABLE */
+#empTable input {
+    width: 100%;
+    padding: 5px;
+    box-sizing: border-box;
+}
+
+/* BUTTON STYLES */
+button {
+    margin: 2px;
+    padding: 5px 8px;
+    border-radius: 5px;
+    border: none;
     cursor: pointer;
-    margin: 5px;
-    font-size: 16px;
 }
 
-/* Multi select */
+.edit-btn {
+    background: #3b82f6;
+    color: white;
+}
+
+.delete-btn {
+    background: #ef4444;
+    color: white;
+}
+
+.save-btn {
+    background: #10b981;
+    color: white;
+}
+
+.cancel-btn {
+    background: #6b7280;
+    color: white;
+}
+
+/* MULTI SELECT */
 .multi-select {
     position: relative;
     width: 200px;
@@ -73,6 +132,7 @@ h2 {
     padding: 10px;
     background: #fff;
     cursor: pointer;
+    border-radius: 6px;
 }
 
 .checkboxes {

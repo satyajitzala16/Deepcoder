@@ -317,10 +317,12 @@ def get_employees(request):
     for emp in employees:
         data.append({
             "id": emp.id,
+            "employee_id": emp.employee_id,
             "name": emp.name,
             "email": emp.email,
             "salary": emp.salary,
             "password": emp.password,
+            "date_of_joining": emp.date_of_joining,
             "yearly_paid_leaves": emp.yearly_paid_leaves,
             "role": emp.role.name if emp.role else "",
             "technologies": [t.name for t in emp.technologies.all()]
@@ -335,10 +337,12 @@ def update_employee(request, id):
 
     emp = get_object_or_404(Employee, id=id)
 
+    emp.employee_id = request.data.get("employee_id")
     emp.name = request.data.get("name")
     emp.email = request.data.get("email")
     emp.password = request.data.get("password")
     emp.salary = request.data.get("salary")
+    emp.date_of_joining = request.data.get("date_of_joining")
 
     emp.save()
 
@@ -456,7 +460,7 @@ def salary_slip_pdf(request, emp_id, month):
     # ---------------------------
     # Logo & Company Info
     # ---------------------------
-    logo_path = os.path.join(settings.BASE_DIR, 'salary', 'static', 'salary', 'images', 'deepcoder_logo.png')
+    logo_path = os.path.join(settings.BASE_DIR, 'salary', 'static', 'salary', 'images', 'DeepcoderPdf.png')
     if os.path.exists(logo_path):
         c.drawImage(logo_path, 50, height-100, width=100, height=50)
     else:

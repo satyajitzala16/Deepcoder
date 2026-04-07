@@ -1,11 +1,11 @@
 let selectedTech = [];
 
-// 🔥 Toggle Dropdown
+// 🔥 Toggle dropdown
 function toggleDropdown() {
     document.getElementById("techDropdown").classList.toggle("show");
 }
 
-// 🔥 Load Technologies (FIXED)
+// 🔥 Load Technologies
 async function loadTechnologies() {
     let res = await fetch('/api/technologies/');
     let data = await res.json();
@@ -23,60 +23,60 @@ async function loadTechnologies() {
     });
 }
 
-// 🔥 Select Tech
+// 🔥 Select tech
 function selectTech(el) {
-    let value = el.value;
+    let val = el.value;
 
     if (el.checked) {
-        if (!selectedTech.includes(value)) {
-            selectedTech.push(value);
-        }
+        if (!selectedTech.includes(val)) selectedTech.push(val);
     } else {
-        selectedTech = selectedTech.filter(id => id !== value);
+        selectedTech = selectedTech.filter(i => i !== val);
     }
 }
 
 // 🔥 Add Employee
 async function addEmployee() {
 
-    let name = document.getElementById("name").value.trim();
-    let email = document.getElementById("email").value.trim();
-    let password = document.getElementById("password").value.trim();
-    let salary = document.getElementById("salary").value.trim();
-    let role = document.getElementById("role").value;
+    let data = {
+        employee_id: document.getElementById("employee_id").value,
+        name: document.getElementById("name").value,
+        email: document.getElementById("email").value,
+        password: document.getElementById("password").value,
+        salary: document.getElementById("salary").value,
+        date_of_joining: document.getElementById("date_of_joining").value,
+        role_id: document.getElementById("role").value,
+        technology_ids: selectedTech
+    };
 
-    if (!name || !email || !password || !salary) {
+    if (!data.employee_id || !data.name || !data.email || !data.password || !data.salary || !data.date_of_joining) {
         alert("All fields required!");
         return;
     }
 
     await fetch('/api/add-employee/', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            name,
-            email,
-            password,
-            salary,
-            role_id: role,
-            technology_ids: selectedTech
-        })
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
     });
 
     alert("Employee Added");
 
-    // 🔥 Reset form
+    resetForm();
+    loadEmployees();
+}
+
+// 🔥 Reset Form
+function resetForm() {
+    document.getElementById("employee_id").value = "";
     document.getElementById("name").value = "";
     document.getElementById("email").value = "";
     document.getElementById("password").value = "";
     document.getElementById("salary").value = "";
+    document.getElementById("date_of_joining").value = "";
     document.getElementById("role").value = "";
+
     selectedTech = [];
-
-    // uncheck all checkboxes
     document.querySelectorAll("#techDropdown input").forEach(cb => cb.checked = false);
-
-    loadEmployees();
 }
 
 // 🔥 Load Roles
@@ -85,7 +85,7 @@ async function loadRoles() {
     let data = await res.json();
 
     let role = document.getElementById("role");
-    role.innerHTML = `<option value="">Role</option>`;
+    role.innerHTML = `<option value="">Select Role</option>`;
 
     data.forEach(r => {
         role.innerHTML += `<option value="${r.id}">${r.name}</option>`;
@@ -101,10 +101,12 @@ async function loadEmployees() {
     let html = `
     <tr>
         <th>ID</th>
+        <th>Emp ID</th>
         <th>Name</th>
         <th>Email</th>
         <th>Password</th>
         <th>Salary</th>
+        <th>DOJ</th>
         <th>Role</th>
         <th>Tech</th>
         <th>Action</th>
@@ -114,15 +116,17 @@ async function loadEmployees() {
         html += `
         <tr id="row-${e.id}">
             <td>${e.id}</td>
+            <td>${e.employee_id || '-'}</td>
             <td>${e.name}</td>
             <td>${e.email}</td>
             <td>${e.password}</td>
             <td>${e.salary}</td>
+            <td>${e.date_of_joining || '-'}</td>
             <td>${e.role}</td>
             <td>${e.technologies.join(", ")}</td>
-            <td>
-                <i class="fa fa-edit icon-btn" onclick="editRow(${e.id})"></i>
-                <i class="fa fa-trash icon-btn" onclick="deleteEmployee(${e.id})"></i>
+            <td class="action-col">
+                <button class="edit-btn" onclick="editRow(${e.id})">Edit</button>
+                <button class="delete-btn" onclick="deleteEmployee(${e.id})">Delete</button>
             </td>
         </tr>`;
     });
@@ -130,36 +134,47 @@ async function loadEmployees() {
     document.getElementById("empTable").innerHTML = html;
 }
 
-// 🔥 Edit
+// 🔥 Edit Row (FIXED)
 function editRow(id) {
 
     let row = document.getElementById(`row-${id}`);
     let cols = row.children;
 
+    let doj = cols[6].innerText !== '-' ? cols[6].innerText : "";
+
     row.innerHTML = `
         <td>${id}</td>
-        <td><input id="n-${id}" value="${cols[1].innerText}"></td>
-        <td><input id="e-${id}" value="${cols[2].innerText}"></td>
-        <td><input id="p-${id}" value="${cols[3].innerText}"></td>
-        <td><input id="s-${id}" value="${cols[4].innerText}"></td>
-        <td colspan="3">
-            <button onclick="updateEmployee(${id})">Save</button>
-            <button onclick="loadEmployees()">Cancel</button>
+        <td><input value="${cols[1].innerText}"></td>
+        <td><input value="${cols[2].innerText}"></td>
+        <td><input value="${cols[3].innerText}"></td>
+        <td><input value="${cols[4].innerText}"></td>
+        <td><input value="${cols[5].innerText}"></td>
+        <td><input type="date" value="${doj}"></td>
+        <td>-</td>
+        <td>-</td>
+        <td class="action-col">
+            <button class="save-btn" onclick="updateEmployee(${id}, this)">Save</button>
+            <button class="cancel-btn" onclick="loadEmployees()">Cancel</button>
         </td>
     `;
 }
 
-// 🔥 Update
-async function updateEmployee(id) {
+// 🔥 Update Employee
+async function updateEmployee(id, btn) {
+
+    let row = btn.closest("tr");
+    let inputs = row.querySelectorAll("input");
 
     await fetch(`/api/update-employee/${id}/`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
-            name: document.getElementById(`n-${id}`).value,
-            email: document.getElementById(`e-${id}`).value,
-            password: document.getElementById(`p-${id}`).value,
-            salary: document.getElementById(`s-${id}`).value
+            employee_id: inputs[0].value,
+            name: inputs[1].value,
+            email: inputs[2].value,
+            password: inputs[3].value,
+            salary: inputs[4].value,
+            date_of_joining: inputs[5].value
         })
     });
 
@@ -168,7 +183,6 @@ async function updateEmployee(id) {
 
 // 🔥 Delete
 async function deleteEmployee(id) {
-
     if (!confirm("Delete?")) return;
 
     await fetch(`/api/delete-employee/${id}/`, {
@@ -178,13 +192,7 @@ async function deleteEmployee(id) {
     loadEmployees();
 }
 
-// 🔥 Load all
-window.onload = function () {
-    loadEmployees();
-    loadRoles();
-    loadTechnologies();
-};
-
+// 🔥 Close dropdown
 document.addEventListener("click", function(e){
     let box = document.getElementById("techDropdown");
     let select = document.querySelector(".multi-select");
@@ -193,3 +201,10 @@ document.addEventListener("click", function(e){
         box.classList.remove("show");
     }
 });
+
+// 🔥 Init
+window.onload = function () {
+    loadEmployees();
+    loadRoles();
+    loadTechnologies();
+};
