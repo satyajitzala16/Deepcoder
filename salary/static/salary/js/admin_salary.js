@@ -79,6 +79,7 @@ async function loadSalary(){
    <th>Paid Leaves</th>
    <th>Unpaid Leaves</th>
    <th>Cut Amount</th>
+   <th>Tax</th>   // 🔥 NEW
    <th>Final Salary</th>
    <th>Slip</th>
  </tr>
@@ -102,6 +103,7 @@ async function loadSalary(){
        <td>${e.paid_leaves}</td>
        <td>${e.unpaid_leaves}</td>
        <td>${e.cut_amount}</td>
+       <td>${e.tax}</td>   // 🔥 NEW
        <td>${e.final_salary}</td>
        <td>
          <button onclick="downloadSlip('${e.id}', '${e.month}')">
@@ -115,7 +117,7 @@ async function loadSalary(){
    // 🔥 Footer Row
    html += `
    <tr style="background:#f1f5f9;font-weight:bold;">
-       <td colspan="8">Total Salary</td>
+       <td colspan="9">Total Salary</td>
        <td>${totalSalary.toFixed(2)}</td>
    </tr>
    `;

@@ -116,6 +116,10 @@ def employee_salary_list(request):
 
         total, paid, unpaid, cut, final = calculate_salary(emp, leave)
 
+        tax = Decimal('200')  # 🔥 FIX: add tax
+
+        final = final - tax   # 🔥 FINAL SALARY UPDATE
+
         basic = emp.salary * Decimal('0.45')
         hra = emp.salary * Decimal('0.18')
         conv = Decimal('1600')
@@ -138,7 +142,7 @@ def employee_salary_list(request):
                     "company": company,
                     "pay_days": 30,
                     "total_earnings": total_earnings,
-                    "total_deductions": cut,
+                    "total_deductions": cut + tax,   # 🔥 include tax
                     "net_pay": final
                 }
             )
@@ -156,6 +160,9 @@ def employee_salary_list(request):
         if cut > 0:
             Deduction.objects.create(salary_slip=slip, name="Leave Deduction", amount=cut)
 
+        # 🔥 ALWAYS ADD TAX
+        Deduction.objects.create(salary_slip=slip, name="Professional Tax", amount=tax)
+
         result.append({
             "id": emp.id,   # 🔥 ADD THIS
             "name": emp.name,
@@ -166,6 +173,7 @@ def employee_salary_list(request):
             "paid_leaves": paid,
             "unpaid_leaves": unpaid,
             "cut_amount": cut,
+            "tax": tax,   # 🔥 NEW FIELD
             "final_salary": final
         })
 
@@ -441,16 +449,19 @@ import calendar
 from decimal import Decimal, ROUND_HALF_UP
 from django.http import HttpResponse
 from django.conf import settings
+
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
+from reportlab.platypus import Table, TableStyle
+from reportlab.lib import colors
+
 from .models import Employee, SalarySlip, Leave
 
+
 def salary_slip_pdf(request, emp_id, month):
-    # Fetch employee and salary slip
     emp = Employee.objects.get(id=emp_id)
     slip = SalarySlip.objects.get(employee=emp, month=month)
 
-    # Prepare PDF response
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{emp.name}_{month}_salary.pdf"'
 
@@ -458,16 +469,19 @@ def salary_slip_pdf(request, emp_id, month):
     width, height = A4
 
     # ---------------------------
-    # Logo & Company Info
+    # ✅ LOGO FIX
     # ---------------------------
     logo_path = os.path.join(settings.BASE_DIR, 'salary', 'static', 'salary', 'images', 'DeepcoderPdf.png')
-    if os.path.exists(logo_path):
-        c.drawImage(logo_path, 50, height-100, width=100, height=50)
-    else:
-        print("Logo not found at:", logo_path)
 
+    if os.path.exists(logo_path):
+        c.drawImage(logo_path, 50, height-100, width=100, height=50, mask='auto')
+
+    # ---------------------------
+    # Company Info
+    # ---------------------------
     c.setFont("Helvetica-Bold", 14)
     c.drawString(200, height-60, "Deepcoder Pvt Ltd")
+
     c.setFont("Helvetica", 10)
     c.drawString(200, height-75, "504, Jaihind HN Safal")
     c.drawString(200, height-90, "Nr. New York Tower -1")
@@ -483,106 +497,111 @@ def salary_slip_pdf(request, emp_id, month):
     # ---------------------------
     # Employee Info
     # ---------------------------
-    data_y = height-170
+    y = height - 170
+
     c.setFont("Helvetica", 10)
-    c.drawString(50, data_y, f"Employee Name: {emp.name}")
+    c.drawString(50, y, f"Employee Name: {emp.name}")
 
-    doj_text = emp.date_of_joining.strftime('%d-%b-%Y') if emp.date_of_joining else "N/A"
-    c.drawString(250, data_y, f"DOJ: {doj_text}")
+    doj = emp.date_of_joining.strftime('%d-%b-%Y') if emp.date_of_joining else "N/A"
+    c.drawString(300, y, f"DOJ: {doj}")
 
-    # Month days dynamically
     month_name, year = month.split()
     month_number = list(calendar.month_name).index(month_name)
     year = int(year)
-    total_days_in_month = calendar.monthrange(year, month_number)[1]
+    total_days = calendar.monthrange(year, month_number)[1]
 
-    data_y -= 15
-    c.drawString(50, data_y, f"Employee ID: {emp.employee_id}")
-    c.drawString(250, data_y, f"Pay Days: {slip.pay_days}/{total_days_in_month}")
-    data_y -= 15
-    c.drawString(50, data_y, f"Role: {emp.role.name if emp.role else 'N/A'}")
+    y -= 15
+    c.drawString(50, y, f"Employee ID: {emp.employee_id}")
+    c.drawString(300, y, f"Pay Days: {slip.pay_days}/{total_days}")
+
+    y -= 15
+    c.drawString(50, y, f"Role: {emp.role.name if emp.role else 'N/A'}")
 
     # ---------------------------
-    # Earnings & Deductions Table
+    # Salary Calculation
     # ---------------------------
-    data_y -= 30
-    c.setFont("Helvetica-Bold", 10)
-    c.drawString(50, data_y, "Earnings")
-    c.drawString(250, data_y, "Amount")
-    c.drawString(350, data_y, "Deductions")
-    c.drawString(500, data_y, "Amount")
-    data_y -= 15
-    c.setFont("Helvetica", 10)
-
-    # Divide salary into components
     total_salary = Decimal(emp.salary)
+
     basic = (total_salary * Decimal('0.45')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
     special = (total_salary * Decimal('0.25')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
     conveyance = (total_salary * Decimal('0.128')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-    hra = (total_salary - (basic + special + conveyance)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)  # remaining
+    hra = (total_salary - (basic + special + conveyance)).quantize(Decimal('0.01'))
 
-    earnings_list = [
-        ("Basic", basic),
-        ("Special Allowances", special),
-        ("Conveyance Allowances", conveyance),
-        ("HRA", hra),
-    ]
-
-    # Deductions
     professional_tax = Decimal('200.00')
     tds = Decimal('0.00')
     esic = Decimal('0.00')
 
     leaves_record = Leave.objects.filter(employee=emp, month=month).first()
     leaves_deduction = Decimal('0.00')
-    if leaves_record:
-        unpaid_leaves = leaves_record.total_leaves - leaves_record.paid_leaves
-        per_day_salary = total_salary / Decimal(total_days_in_month)
-        leaves_deduction = (Decimal(unpaid_leaves) * per_day_salary).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
-    deductions_list = [
-        ("Professional Tax", professional_tax),
-        ("TDS", tds),
-        ("ESIC", esic),
-        ("Leaves Deduction", leaves_deduction)
+    if leaves_record:
+        unpaid = leaves_record.total_leaves - leaves_record.paid_leaves
+        per_day = total_salary / Decimal(total_days)
+        leaves_deduction = (Decimal(unpaid) * per_day).quantize(Decimal('0.01'))
+
+    # ---------------------------
+    # ✅ TABLE DATA
+    # ---------------------------
+    table_data = [
+        ["Earnings", "Amount", "Deductions", "Amount"],
+        ["Basic", f"{basic}", "Professional Tax", f"{professional_tax}"],
+        ["Special Allowance", f"{special}", "TDS", f"{tds}"],
+        ["Conveyance", f"{conveyance}", "ESIC", f"{esic}"],
+        ["HRA", f"{hra}", "Leaves Deduction", f"{leaves_deduction}"],
     ]
 
-    max_rows = max(len(earnings_list), len(deductions_list))
-    for i in range(max_rows):
-        # Earnings
-        if i < len(earnings_list):
-            e_name, e_amt = earnings_list[i]
-            c.drawString(50, data_y, e_name)
-            c.drawString(250, data_y, f"{e_amt:.2f}")
-        # Deductions
-        if i < len(deductions_list):
-            d_name, d_amt = deductions_list[i]
-            c.drawString(350, data_y, d_name)
-            c.drawString(500, data_y, f"{d_amt:.2f}")
-        data_y -= 15
-
-    # ---------------------------
-    # Totals
-    # ---------------------------
-    total_earnings = sum([amt for _, amt in earnings_list])
-    total_deductions = sum([amt for _, amt in deductions_list])
+    total_earnings = basic + special + conveyance + hra
+    total_deductions = professional_tax + tds + esic + leaves_deduction
     net_pay = total_earnings - total_deductions
 
-    data_y -= 10
-    c.setFont("Helvetica-Bold", 10)
-    c.drawString(50, data_y, f"Total Earnings: {total_earnings:.2f}")
-    c.drawString(350, data_y, f"Total Deductions: {total_deductions:.2f}")
-    data_y -= 20
-    c.drawString(50, data_y, f"Net Pay: {net_pay:.2f}")
+    # Totals Row
+    table_data.append([
+        "Total Earnings", f"{total_earnings}",
+        "Total Deductions", f"{total_deductions}"
+    ])
+
+    # ✅ FIXED Net Pay Row (NO SPAN ISSUE)
+    table_data.append([
+        "Net Pay", f"{net_pay}", "", ""
+    ])
+
+    # ---------------------------
+    # 🔥 TABLE DESIGN
+    # ---------------------------
+    table = Table(table_data, colWidths=[140, 80, 140, 80])
+
+    style = TableStyle([
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+
+        # Header
+        ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+
+        # Alignment
+        ('ALIGN', (1, 1), (-1, -1), 'RIGHT'),
+
+        # Bold totals
+        ('FONTNAME', (0, -2), (-1, -1), 'Helvetica-Bold'),
+
+        # 🔥 Net Pay Highlight (FIXED)
+        ('BACKGROUND', (0, -1), (1, -1), colors.lightgrey),
+        ('ALIGN', (1, -1), (1, -1), 'RIGHT'),
+
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('TOPPADDING', (0, 0), (-1, -1), 5),
+    ])
+
+    table.setStyle(style)
+
+    table.wrapOn(c, width, height)
+    table.drawOn(c, 50, y - 200)
 
     # ---------------------------
     # Footer
     # ---------------------------
-    data_y -= 50
     c.setFont("Helvetica", 8)
-    c.drawString(50, data_y, "** This is a computer generated salary slip and does not require signature.")
+    c.drawString(50, 100, "** This is a computer generated salary slip and does not require signature.")
 
-    c.showPage()
     c.save()
     return response
 
