@@ -1,6 +1,5 @@
-from . import views   
+from . import views
 from django.urls import path
-from .views import employee_salary_list, add_employee, add_leave, get_employees , add_role, add_technology,admin_login,employee_login , home
 
 urlpatterns = [
     path('', views.home),
@@ -25,7 +24,6 @@ urlpatterns = [
     path('add-leave/', views.add_leave),
     path('leave-list/', views.leave_list),
     path('update-leave/<int:id>/', views.update_leave),
-    path('employees/', views.get_employees),
     path('api/roles/', views.get_roles),
     path('api/add-role/', views.add_role),
     path('api/update-role/<int:id>/', views.update_role),
