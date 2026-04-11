@@ -1,15 +1,23 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404, render, redirect
-from django.http import JsonResponse
-from decimal import Decimal
+from django.http import JsonResponse, HttpResponse
+from decimal import Decimal, ROUND_HALF_UP
 from functools import wraps
+import os
+import calendar
 
 from .models import (
     Employee, Leave, Role, Technology, Admin,
     SalarySlip, Earning, Deduction, Company
 )
 from django.contrib.auth.models import User
+from django.conf import settings
+
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from reportlab.platypus import Table, TableStyle
+from reportlab.lib import colors
 
 
 # ==============================
@@ -95,6 +103,66 @@ def calculate_salary(emp, leave):
     return total, paid, unpaid, round(cut, 2), round(final, 2)
 
 
+def get_month_details(month):
+    month_name, year = month.split()
+    month_number = list(calendar.month_name).index(month_name)
+    year = int(year)
+    total_days = calendar.monthrange(year, month_number)[1]
+    return month_name, year, total_days
+
+
+def get_salary_breakdown(emp, month, leave=None):
+    _, _, total_days = get_month_details(month)
+
+    total_salary = Decimal(emp.salary).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+    total_leaves = Decimal(str(leave.total_leaves)) if leave else Decimal('0.0')
+    paid_leaves = Decimal(str(leave.paid_leaves)) if leave else Decimal('0.0')
+    comp_off_leaves = Decimal(str(leave.comp_off_leaves)) if leave else Decimal('0.0')
+
+    unpaid_leaves = total_leaves - paid_leaves - comp_off_leaves
+    if unpaid_leaves < 0:
+        unpaid_leaves = Decimal('0.0')
+
+    basic = (total_salary * Decimal('0.45')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+    special = (total_salary * Decimal('0.25')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+    conveyance = (total_salary * Decimal('0.128')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+    hra = (total_salary - (basic + special + conveyance)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+    professional_tax = Decimal('200.00')
+    tds = Decimal('0.00')
+    esic = Decimal('0.00')
+    per_day = (total_salary / Decimal(total_days)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+    leaves_deduction = (unpaid_leaves * per_day).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+    total_earnings = basic + special + conveyance + hra
+    total_deductions = professional_tax + tds + esic + leaves_deduction
+    net_pay = (total_earnings - total_deductions).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+    pay_days = max(total_days - int(unpaid_leaves), 0)
+
+    return {
+        "month": month,
+        "total_days": total_days,
+        "pay_days": pay_days,
+        "salary": total_salary,
+        "total_leaves": total_leaves.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP),
+        "paid_leaves": paid_leaves.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP),
+        "comp_off_leaves": comp_off_leaves.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP),
+        "unpaid_leaves": unpaid_leaves.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP),
+        "per_day_salary": per_day,
+        "basic": basic,
+        "special_allowance": special,
+        "conveyance": conveyance,
+        "hra": hra,
+        "professional_tax": professional_tax,
+        "tds": tds,
+        "esic": esic,
+        "leave_deduction": leaves_deduction,
+        "total_earnings": total_earnings.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP),
+        "total_deductions": total_deductions.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP),
+        "net_pay": net_pay,
+    }
+
+
 # ==============================
 # 📊 SALARY LIST
 # ==============================
@@ -111,21 +179,8 @@ def employee_salary_list(request):
     result = []
 
     for emp in employees:
-
         leave = Leave.objects.filter(employee=emp, month=month).first()
-
-        total, paid, unpaid, cut, final = calculate_salary(emp, leave)
-
-        tax = Decimal('200')  # 🔥 FIX: add tax
-
-        final = final - tax   # 🔥 FINAL SALARY UPDATE
-
-        basic = emp.salary * Decimal('0.45')
-        hra = emp.salary * Decimal('0.18')
-        conv = Decimal('1600')
-        special = emp.salary * Decimal('0.25')
-
-        total_earnings = basic + hra + conv + special
+        breakdown = get_salary_breakdown(emp, month, leave)
 
         company = Company.objects.first()
 
@@ -140,41 +195,61 @@ def employee_salary_list(request):
                 month=month,
                 defaults={
                     "company": company,
-                    "pay_days": 30,
-                    "total_earnings": total_earnings,
-                    "total_deductions": cut + tax,   # 🔥 include tax
-                    "net_pay": final
+                    "pay_days": breakdown["pay_days"],
+                    "total_earnings": breakdown["total_earnings"],
+                    "total_deductions": breakdown["total_deductions"],
+                    "net_pay": breakdown["net_pay"]
                 }
             )
-        # 🔥 Purana data delete (important)
+
         slip.earnings.all().delete()
         slip.deductions.all().delete()
 
-        # 🔥 Earnings add
-        Earning.objects.create(salary_slip=slip, name="Basic", amount=basic)
-        Earning.objects.create(salary_slip=slip, name="HRA", amount=hra)
-        Earning.objects.create(salary_slip=slip, name="Conveyance", amount=conv)
-        Earning.objects.create(salary_slip=slip, name="Special Allowance", amount=special)
+        Earning.objects.create(salary_slip=slip, name="Basic", amount=breakdown["basic"])
+        Earning.objects.create(salary_slip=slip, name="HRA", amount=breakdown["hra"])
+        Earning.objects.create(salary_slip=slip, name="Conveyance", amount=breakdown["conveyance"])
+        Earning.objects.create(salary_slip=slip, name="Special Allowance", amount=breakdown["special_allowance"])
 
-        # 🔥 Deduction
-        if cut > 0:
-            Deduction.objects.create(salary_slip=slip, name="Leave Deduction", amount=cut)
+        Deduction.objects.create(
+            salary_slip=slip,
+            name="Professional Tax",
+            amount=breakdown["professional_tax"]
+        )
+        Deduction.objects.create(salary_slip=slip, name="TDS", amount=breakdown["tds"])
+        Deduction.objects.create(salary_slip=slip, name="ESIC", amount=breakdown["esic"])
 
-        # 🔥 ALWAYS ADD TAX
-        Deduction.objects.create(salary_slip=slip, name="Professional Tax", amount=tax)
+        if breakdown["leave_deduction"] > 0:
+            Deduction.objects.create(
+                salary_slip=slip,
+                name="Leaves Deduction",
+                amount=breakdown["leave_deduction"]
+            )
 
         result.append({
-            "id": emp.id,   # 🔥 ADD THIS
+            "id": emp.id,
             "name": emp.name,
+            "employee_id": emp.employee_id,
             "email": emp.email,
-            "salary": emp.salary,
+            "role": emp.role.name if emp.role else "N/A",
             "month": month,
-            "total_leaves": total,
-            "paid_leaves": paid,
-            "unpaid_leaves": unpaid,
-            "cut_amount": cut,
-            "tax": tax,   # 🔥 NEW FIELD
-            "final_salary": final
+            "salary": breakdown["salary"],
+            "pay_days": breakdown["pay_days"],
+            "total_days": breakdown["total_days"],
+            "total_leaves": breakdown["total_leaves"],
+            "paid_leaves": breakdown["paid_leaves"],
+            "comp_off_leaves": breakdown["comp_off_leaves"],
+            "unpaid_leaves": breakdown["unpaid_leaves"],
+            "basic": breakdown["basic"],
+            "hra": breakdown["hra"],
+            "conveyance": breakdown["conveyance"],
+            "special_allowance": breakdown["special_allowance"],
+            "professional_tax": breakdown["professional_tax"],
+            "tds": breakdown["tds"],
+            "esic": breakdown["esic"],
+            "leave_deduction": breakdown["leave_deduction"],
+            "total_earnings": breakdown["total_earnings"],
+            "total_deductions": breakdown["total_deductions"],
+            "final_salary": breakdown["net_pay"]
         })
 
     return Response(result)
@@ -444,23 +519,11 @@ def delete_technology(request, id):
     tech.delete()
     return Response({"message":"Technology deleted"})
 
-import os
-import calendar
-from decimal import Decimal, ROUND_HALF_UP
-from django.http import HttpResponse
-from django.conf import settings
-
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
-from reportlab.platypus import Table, TableStyle
-from reportlab.lib import colors
-
-from .models import Employee, SalarySlip, Leave
-
-
 def salary_slip_pdf(request, emp_id, month):
     emp = Employee.objects.get(id=emp_id)
     slip = SalarySlip.objects.get(employee=emp, month=month)
+    leave = Leave.objects.filter(employee=emp, month=month).first()
+    breakdown = get_salary_breakdown(emp, month, leave)
 
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{emp.name}_{month}_salary.pdf"'
@@ -505,64 +568,33 @@ def salary_slip_pdf(request, emp_id, month):
     doj = emp.date_of_joining.strftime('%d-%b-%Y') if emp.date_of_joining else "N/A"
     c.drawString(300, y, f"DOJ: {doj}")
 
-    month_name, year = month.split()
-    month_number = list(calendar.month_name).index(month_name)
-    year = int(year)
-    total_days = calendar.monthrange(year, month_number)[1]
-
     y -= 15
     c.drawString(50, y, f"Employee ID: {emp.employee_id}")
-    c.drawString(300, y, f"Pay Days: {slip.pay_days}/{total_days}")
+    c.drawString(300, y, f"Pay Days: {slip.pay_days}/{breakdown['total_days']}")
 
     y -= 15
     c.drawString(50, y, f"Role: {emp.role.name if emp.role else 'N/A'}")
-
-    # ---------------------------
-    # Salary Calculation
-    # ---------------------------
-    total_salary = Decimal(emp.salary)
-
-    basic = (total_salary * Decimal('0.45')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-    special = (total_salary * Decimal('0.25')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-    conveyance = (total_salary * Decimal('0.128')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-    hra = (total_salary - (basic + special + conveyance)).quantize(Decimal('0.01'))
-
-    professional_tax = Decimal('200.00')
-    tds = Decimal('0.00')
-    esic = Decimal('0.00')
-
-    leaves_record = Leave.objects.filter(employee=emp, month=month).first()
-    leaves_deduction = Decimal('0.00')
-
-    if leaves_record:
-        unpaid = leaves_record.total_leaves - leaves_record.paid_leaves
-        per_day = total_salary / Decimal(total_days)
-        leaves_deduction = (Decimal(unpaid) * per_day).quantize(Decimal('0.01'))
 
     # ---------------------------
     # ✅ TABLE DATA
     # ---------------------------
     table_data = [
         ["Earnings", "Amount", "Deductions", "Amount"],
-        ["Basic", f"{basic}", "Professional Tax", f"{professional_tax}"],
-        ["Special Allowance", f"{special}", "TDS", f"{tds}"],
-        ["Conveyance", f"{conveyance}", "ESIC", f"{esic}"],
-        ["HRA", f"{hra}", "Leaves Deduction", f"{leaves_deduction}"],
+        ["Basic", f"{breakdown['basic']}", "Professional Tax", f"{breakdown['professional_tax']}"],
+        ["Special Allowance", f"{breakdown['special_allowance']}", "TDS", f"{breakdown['tds']}"],
+        ["Conveyance", f"{breakdown['conveyance']}", "ESIC", f"{breakdown['esic']}"],
+        ["HRA", f"{breakdown['hra']}", "Leaves Deduction", f"{breakdown['leave_deduction']}"],
     ]
-
-    total_earnings = basic + special + conveyance + hra
-    total_deductions = professional_tax + tds + esic + leaves_deduction
-    net_pay = total_earnings - total_deductions
 
     # Totals Row
     table_data.append([
-        "Total Earnings", f"{total_earnings}",
-        "Total Deductions", f"{total_deductions}"
+        "Total Earnings", f"{breakdown['total_earnings']}",
+        "Total Deductions", f"{breakdown['total_deductions']}"
     ])
 
     # ✅ FIXED Net Pay Row (NO SPAN ISSUE)
     table_data.append([
-        "Net Pay", f"{net_pay}", "", ""
+        "Net Pay", f"{breakdown['net_pay']}", "", ""
     ])
 
     # ---------------------------
